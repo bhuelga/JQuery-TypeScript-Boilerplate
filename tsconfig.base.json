@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",  
+		"lib": ["dom", "es2018"],
+		"watch": true,
+
+		"allowJs": true,
+		"checkJs": true,
+
+		"outDir": "./src/js",
+
+		"strict": true,
+		"noImplicitAny": true,
+
+		"noUnusedLocals": true,
+		"removeComments": true,
+		"noUnusedParameters": true,
+		"noImplicitReturns": true,             
+		"noFallthroughCasesInSwitch": true,    
+		"moduleResolution": "node",
+	},
+	"include" : [
+		"./src/ts/**/*"
+	],
+	"exclude" : [
+		"node_modules"
+	]
+}
