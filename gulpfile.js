@@ -7,6 +7,7 @@ const browserSync = require('browser-sync').create();
 const useref = require('gulp-useref');
 const uglify = require('gulp-uglify-es').default;
 const cleanCSS = require('gulp-clean-css');
+const autoprefix = require('gulp-autoprefixer');
 const imageMin = require('gulp-imagemin');
 const cache = require('gulp-cache');
 const del = require('del');
@@ -15,10 +16,10 @@ const gulpIf = require('gulp-if');
 // File Paths
 const HTML_PATH = './src/**/*.html';
 const SCSS_PATH = './src/scss/**/*.scss';
-const CSS_PATH = './src/css';
-const TS_PATH = './src/ts/**/*.ts';
-const JS_PATH = './src/js';
-const IMG_PATH = './src/img';
+const CSS_PATH = './src/css/';
+const TS_PATH = './src/ts/**/*';
+const JS_PATH = './src/js/';
+const IMG_PATH = './src/img/*';
 const DIST_PATH = './dist/';
 
 const tsProject = ts.createProject("tsconfig.json");
@@ -54,10 +55,16 @@ function startBrowserSync() {
 
 /* Condenses CSS and JS tags in HTML files and moves to dist */
 function htmlCssJs() {
+	let autoprefixBrowsers = ['> 1%', 'last 2 versions', 'firefox >= 4', 'safari 7', 'safari 8', 'IE 8', 'IE 9', 'IE 10', 'IE 11'];
+
 	return gulp.src(HTML_PATH)
 		.pipe(useref())
 		.pipe(gulpIf('*.js', uglify()))
-		.pipe(gulpIf('*.css', cleanCSS()))
+		.pipe(gulpIf('*.css', cleanCSS({ rebase : false })))
+		.pipe(gulpIf('*.css', autoprefix({
+			browsers: autoprefixBrowsers,
+			cascade: false
+		})))
 		.pipe(gulp.dest(DIST_PATH));
 }
 
@@ -65,12 +72,12 @@ function htmlCssJs() {
 function imageMinify() {
 	return gulp.src(IMG_PATH)
 		.pipe(cache(imageMin()))
-		.pipe(gulp.dest(DIST_PATH));
+		.pipe(gulp.dest(DIST_PATH + '/img/'));
 }
 
 /* Cleans distribution directory */
 function cleanDist(cb) {
-	del.sync(DIST_PATH + '*');
+	del.sync(DIST_PATH + '**/!(CNAME)');
 	cb();
 }
 
@@ -101,12 +108,13 @@ exports.clearCache = gulp.series(clearCache);
 exports.compile = gulp.parallel(compileSass, compileTS);
 
 exports.build = gulp.series(cleanDist,
-							gulp.parallel(compileSass, 
-										  compileTS),
-							gulp.parallel(htmlCssJs,
-										  imageMinify));
+	gulp.parallel(compileSass, 
+				  compileTS),
+	gulp.parallel(htmlCssJs,
+				  imageMinify));
 
-exports.default = gulp.series(gulp.parallel(compileSass, 
-										    compileTS), 
-							  gulp.parallel(startBrowserSync, 
-											watch));
+exports.default = gulp.series(
+	gulp.parallel(compileSass, 
+				  compileTS), 
+	gulp.parallel(startBrowserSync, 
+				  watch));
